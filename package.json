@@ -1,0 +1,48 @@
+{
+	"name": "directus-extension-copilot",
+	"version": "1.0.0",
+	"type": "module",
+	"directus:extension": {
+		"host": "^10.1.9",
+		"type": "bundle",
+		"path": {
+			"app": "dist/app.mjs",
+			"api": "dist/api.mjs"
+		},
+		"entries": [
+			{
+				"type": "panel",
+				"name": "copilot-panel",
+				"source": "src/panel/index.ts"
+			},
+			{
+				"type": "endpoint",
+				"name": "copilot-api",
+				"source": "src/api/index.ts"
+			}
+		]
+	},
+	"description": "A Directus extension that provides an Insights panel and API endpoint allowing you to chat with your data using OpenAI.",
+	"icon": "extension",
+	"keywords": [
+		"directus",
+		"directus-extension",
+		"directus-custom-bundle"
+	],
+	"scripts": {
+		"build": "directus-extension build",
+		"build:langchain": "pushd packages/langchainjs/langchain; yarn build; popd",
+		"dev": "directus-extension build -w --no-minify",
+		"link": "directus-extension link",
+		"add": "directus-extension add"
+	},
+	"devDependencies": {
+		"@directus/errors": "^0.0.2",
+		"@directus/extensions-sdk": "10.1.9",
+		"@directus/types": "^10.1.5",
+		"@types/node": "^20.5.7",
+		"langchain": "file:packages/langchainjs/langchain",
+		"typescript": "^5.2.2",
+		"vue": "^3.3.4"
+	}
+}
