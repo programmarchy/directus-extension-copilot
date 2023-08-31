@@ -31,7 +31,7 @@
 	],
 	"scripts": {
 		"build": "directus-extension build",
-		"build:langchain": "pushd packages/langchainjs/langchain; yarn build; popd",
+		"build:langchain": "pushd packages/langchainjs; yarn install; popd",
 		"dev": "directus-extension build -w --no-minify",
 		"link": "directus-extension link",
 		"add": "directus-extension add"
