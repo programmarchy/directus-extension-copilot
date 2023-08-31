@@ -10,6 +10,7 @@ A Directus extension that provides an Insights panel and API endpoint allowing y
   - List all of my customer's emails in the state of Texas.
   - What is my top selling product this week?
 - I used [langchain.js](https://js.langchain.com) (a modified version) to access the OpenAI API.
+  - A local copy resides in `packages` folder and can be built using `pnpm build:langchain`.
 - I built a bundle extension that provides an Insight panel (named 'Copilot') and an API endpoint (`POST /copilot/ask`).
 - If given longer, I would make many improvements:
   - Ask the AI for richer data (like tables, markdown, etc.) that could be displayed in a companion side drawer alongside the chat.
@@ -17,6 +18,7 @@ A Directus extension that provides an Insights panel and API endpoint allowing y
   - Would allow the AI to explore more endpoints, and possibly even perform POST and PATCH operations!
   - Support Llama and other LLMs, especially self-hosted ones.
   - Allow users to fine-tune the LLM parameters, like temperature and which model.
+  - Remove the dependency on langchain in favor of something simpler, more lightweight.
 
 ## Screenshots
 
