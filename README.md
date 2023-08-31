@@ -40,6 +40,10 @@ pnpm build
 
 The easiest way to install this extension is to clone it directly into your Directus project's `extensions` path. Directus should then load it as a bundle extension.
 
+## Configuration
+
+Provide your OpenAI API key either by setting `OPENAI_API_KEY` in your Directus configuration (e.g. your `.env`), or by pasting your key into the field when configuring the Copilot panel on your Insights dashboard.
+
 ## Collaborators
 
 - [programmarchy](https://github.com/programmarchy)

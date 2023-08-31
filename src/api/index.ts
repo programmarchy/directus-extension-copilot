@@ -36,10 +36,8 @@ export default defineEndpoint({
 				});
 
 				if (!req.params.callback) {
-					console.log('/ask');
 					res.json(await aiService.ask(question));
 				} else {
-					console.log('/ask/callback');
 					res.json(await aiService.askCallback(question, apiOutput));
 				}
 			} catch (err) {
