@@ -1,14 +1,14 @@
 <template>
 	<div class="copilot" :class="{ 'show-header': showHeader }">
-		<div class="ask-question">
+		<form class="ask-question" @submit="ask">
 			<v-input v-model="questionInput" placeholder="Ask a question..." />
 			<div v-if="loading" class="loading">
 				<v-progress-circular indeterminate />
 			</div>
-			<v-button v-else icon rounded outlined x-small :disabled="loading" @click="ask">
+			<v-button v-else icon rounded outlined x-small :disabled="loading" type="submit">
 				<v-icon name="arrow_upward" />
 			</v-button>
-		</div>
+		</form>
 		<div class="messages">
 			<template v-for="message in messages">
 				<div class="message" :class="message.type">{{ message.text }}</div>
@@ -59,7 +59,8 @@ export default defineComponent({
 			messages.value.unshift(message);
 		}
 
-		async function ask() {
+		async function ask(e: Event) {
+			e.preventDefault();
 			const question = questionInput.value;
 			addMessage({
 				type: 'human',
