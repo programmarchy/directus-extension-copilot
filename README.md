@@ -12,8 +12,9 @@ A Directus extension that provides an Insights panel and API endpoint allowing y
 - I used [langchain.js](https://js.langchain.com) (a modified version) to access the OpenAI API.
 - I built a bundle extension that provides an Insight panel (named 'Copilot') and an API endpoint (`POST /copilot/ask`).
 - If given longer, I would make many improvements:
-  - Ask ChatGPT for richer data (like tables, markdown, etc.) that could be displayed in a companion side drawer alongside the chat.
-  - Enhance the capabilities by building an "Agent" that could plan multiple API calls instead of relying on a one-shot API call.
+  - Ask the AI for richer data (like tables, markdown, etc.) that could be displayed in a companion side drawer alongside the chat.
+  - Enhance its capabilities by building an "Agent" that could plan multiple API calls instead of relying on a one-shot API call.
+  - Would allow the AI to explore more endpoints, and possibly even perform POST and PATCH operations!
   - Support Llama and other LLMs, especially self-hosted ones.
   - Allow users to fine-tune the LLM parameters, like temperature and which model.
 
