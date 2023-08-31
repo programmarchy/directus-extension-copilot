@@ -2,6 +2,7 @@ import { defineEndpoint } from '@directus/extensions-sdk';
 import { Accountability, SchemaOverview } from '@directus/types';
 import { InvalidPayloadError } from './errors';
 import { getDirectusOpenAPISpec } from './utils/get-directus-oas';
+import { AiService } from './services/ai';
 
 export default defineEndpoint({
 	id: "copilot",
@@ -10,24 +11,33 @@ export default defineEndpoint({
 
 		router.post('/ask', async (req: unknown, res) => {
 			try {
-				console.log(req);
 				const {
 					accountability,
 					schema,
-					query: {
+					body: {
 						question,
-						openai_api_key,
+						apiKey,
 					},
 				} = parseAskRequest(req);
-				const openaiApiKey = getOpenAIAPIKey({ env, openai_api_key });
+
 				const specService = new SpecificationService({
 					accountability,
 					schema,
 					knex,
 				});
+
 				const spec = await getDirectusOpenAPISpec({ specService });
+
+				const aiService = new AiService(spec, {
+					llm: 'gpt-3.5-turbo-0613',
+					apiKey: resolveApiKey({ env, apiKey }),
+					logger,
+				});
+
+				const { response } = await aiService.ask(question);
+
 				res.json({
-					answer: "Yee haw!",
+					answer: response,
 				});
 			} catch (err) {
 				// Seems like this should be handled by the error handler middleware,
@@ -44,9 +54,9 @@ export default defineEndpoint({
 type CopilotAskRequest = {
 	accountability: Accountability;
 	schema: SchemaOverview;
-	query: {
+	body: {
 		question: string;
-		openai_api_key?: string;
+		apiKey?: string;
 	};
 };
 
@@ -55,13 +65,13 @@ function parseAskRequest(req: any): CopilotAskRequest {
 	const { accountability, schema } = req;
 	// These properties need to be parsed from the request.
 	const question = parseStringParam('q', req.body);
-	const openai_api_key = parseOptionalStringParam('openai_api_key', req.body);
+	const apiKey = parseOptionalStringParam('key', req.body);
 	return {
 		accountability,
 		schema,
-		query: {
+		body: {
 			question,
-			openai_api_key,
+			apiKey,
 		},
 	};
 }
@@ -105,15 +115,15 @@ function encodeErrorResponse(err: any): [ number, any ] {
 	];
 }
 
-function getOpenAIAPIKey({
+function resolveApiKey({
+	apiKey,
 	env,
-	openai_api_key
 }: {
+	apiKey?: string,
 	env: Record<string, string>,
-	openai_api_key?: string
-}): string {
-	if (openai_api_key) {
-		return openai_api_key;
+}): string | undefined {
+	if (apiKey) {
+		return apiKey;
 	}
 	if (env.OPENAI_API_KEY) {
 		return env.OPENAI_API_KEY;

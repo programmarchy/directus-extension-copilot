@@ -70,7 +70,7 @@ export default defineComponent({
 			try {
 				const { data } = await api.post('copilot/ask', {
 					q: question.value,
-					openai_api_key: props.key,
+					key: props.key,
 				});
 				console.log(data);
 				addMessage({
@@ -99,18 +99,20 @@ export default defineComponent({
 	},
 });
 
-function parseErrorMessage(err: any) {
+function parseErrorMessage(err: any): string {
 	const errors = err?.response?.data?.errors;
 	if (Array.isArray(errors) && errors.length > 0) {
 		const message = errors[0].message;
 		if (message) {
 			return String(message);
 		}
-	} else if (err?.message) {
-		return String(err.message);
-	} else {
-		return `Unknown error`;
 	}
+
+	if (err?.message) {
+		return String(err.message);
+	}
+
+	return `Unknown error`;
 }
 </script>
 

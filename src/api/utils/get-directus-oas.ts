@@ -12,7 +12,8 @@ type Options = {
 export async function getDirectusOpenAPISpec({ specService }: { specService: SpecificationService }, options: Options = {}) {
   const spec = await specService.oas.generate();
   const reducedSpec = reduceDirectusOpenAPISpec(spec, options);
-  const dereferencedSpec = await dereferenceSpec(reducedSpec);
+  const augmentedSpec = augmentDirectusOpenAPISpec(reducedSpec);
+  const dereferencedSpec = await dereferenceSpec(augmentedSpec);
   return dereferencedSpec;
 }
 
@@ -79,9 +80,20 @@ function reduceDirectusOpenAPISpec(
   };
 }
 
+function augmentDirectusOpenAPISpec(spec: any): any {
+  // Provide a hint about which meta fields are available.
+  const metaSchema = spec?.components?.parameters?.Meta?.schema;
+  if (metaSchema) {
+    metaSchema.enum = [
+      "total_count",
+      "filter_count",
+    ];
+  }
+  return spec;
+}
+
 function dereferenceSpec(spec: any): any {
   // Recursively dereference all $ref fields in the spec.
-  // Then, remove any remaining refs to eliminate circular references.
 
   function getRef(path: string): any {
     const [prefix, ...components] = path.split('/');
@@ -125,33 +137,5 @@ function dereferenceSpec(spec: any): any {
     }
   }
 
-  function removeRefs(objIn: any): any {
-    if (objIn === undefined || objIn === null) {
-      return objIn;
-    }
-
-    if (typeof objIn === 'object') {
-      const objOut: Record<string, any> = {};
-      for (const [k, v] of Object.entries<any>(objIn)) {
-        if (k === '$ref') {
-          continue;
-        } else if (Array.isArray(v)) {
-          objOut[k] = v.map((v) => removeRefs(v));
-        } else if (typeof v === 'object') {
-          objOut[k] = removeRefs(v);
-        } else {
-          objOut[k] = v;
-        }
-      }
-      return objOut;
-    } else if (Array.isArray(objIn)) {
-      return objIn.map((v) => removeRefs(v));
-    } else {
-      return objIn;
-    }
-  }
-
-  return removeRefs(
-    dereferenceRefs(spec)
-  );
+  return dereferenceRefs(spec);
 }
