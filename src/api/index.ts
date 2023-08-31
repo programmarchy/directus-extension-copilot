@@ -18,6 +18,7 @@ export default defineEndpoint({
 						question,
 						apiKey,
 						apiOutput,
+						llm,
 					},
 				} = parseRequest(req);
 
@@ -29,8 +30,15 @@ export default defineEndpoint({
 
 				const spec = await getDirectusOpenAPISpec({ specService });
 
+				logger?.info('Incoming Copilot request:');
+				logger?.info({
+					question,
+					llm,
+					apiOutput,
+				});
+
 				const aiService = new AiService(spec, {
-					llm: 'gpt-3.5-turbo-0613',
+					llm: llm,
 					apiKey: resolveApiKey({ env, apiKey }),
 					logger,
 				});
@@ -59,6 +67,7 @@ type CopilotRequest = {
 		question: string;
 		apiKey?: string;
 		apiOutput?: string;
+		llm?: string;
 	};
 };
 
@@ -69,6 +78,7 @@ function parseRequest(req: any): CopilotRequest {
 	const question = parseStringParam('question', req.body);
 	const apiKey = parseOptionalStringParam('key', req.body);
 	const apiOutput = parseOptionalStringParam('output', req.body);
+	const llm = parseOptionalStringParam('llm', req.body);
 	return {
 		accountability,
 		schema,
@@ -76,6 +86,7 @@ function parseRequest(req: any): CopilotRequest {
 			question,
 			apiKey,
 			apiOutput,
+			llm,
 		},
 	};
 }

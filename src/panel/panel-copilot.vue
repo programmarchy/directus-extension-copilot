@@ -41,11 +41,13 @@ export default defineComponent({
 			type: String,
 			default: '',
 		},
+		llm: {
+			type: String,
+			default: 'gpt-3.5-turbo-0613',
+		},
 	},
 	setup(props) {
 		const api = useApi();
-
-		console.log(props.apiKey);
 
 		const questionInput = ref('');
 		const loading = ref(false);
@@ -75,6 +77,7 @@ export default defineComponent({
 				const { data } = await api.post('copilot/ask', {
 					question,
 					key: props.apiKey,
+					llm: props.llm,
 				});
 				addMessage({
 					type: 'bot',
@@ -90,8 +93,9 @@ export default defineComponent({
 							data: args,
 						});
 						const { data: callback } = await api.post('copilot/ask/callback', {
-							key: props.apiKey,
 							question,
+							key: props.apiKey,
+							llm: props.llm,
 							output: JSON.stringify(output),
 						});
 						addMessage({
@@ -101,8 +105,9 @@ export default defineComponent({
 						});
 					} catch (err) {
 						const { data: callback } = await api.post('copilot/ask/callback', {
-							key: props.apiKey,
 							question,
+							key: props.apiKey,
+							llm: props.llm,
 						});
 						addMessage({
 							type: 'bot',
