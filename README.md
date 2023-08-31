@@ -34,6 +34,8 @@ https://github.com/programmarchy/directus-extension-copilot/assets/622192/312a6b
 ## Screenshots
 
 <img width="1241" alt="screenshot-1" src="https://github.com/programmarchy/directus-extension-copilot/assets/622192/de911a27-7ffb-4d7a-9f1e-3129489308f7">
+<img width="1241" alt="screenshot-2" src="https://github.com/programmarchy/directus-extension-copilot/assets/622192/828fae64-4eea-4065-b4bf-4f965d7d2ffb">
+<img width="1241" alt="screenshot-3" src="https://github.com/programmarchy/directus-extension-copilot/assets/622192/c015086f-3db0-4055-9895-0f8a3aaa1934">
 
 ## Build
 
