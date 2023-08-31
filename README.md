@@ -41,7 +41,7 @@ pnpm i
 pnpm build
 ```
 
-To spare you any trouble, I removed the `dist` folder from `.gitignore` so that you can skip this step if it causes any trouble.
+To spare you any trouble, I included the `dist` folder so you can skip having to build the extension yourself.
 
 ## Installation
 
