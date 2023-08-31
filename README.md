@@ -19,7 +19,7 @@ A Directus extension that provides an Insights panel and API endpoint allowing y
 
 ## Screenshots
 
-TODO
+<img width="1241" alt="screenshot-1" src="https://github.com/programmarchy/directus-extension-copilot/assets/622192/de911a27-7ffb-4d7a-9f1e-3129489308f7">
 
 ## Collaborators
 
