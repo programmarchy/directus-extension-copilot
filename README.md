@@ -13,6 +13,7 @@ A Directus extension that provides an Insights panel and API endpoint allowing y
   - A local copy resides in `packages` folder and can be built using `pnpm build:langchain`.
 - I built a bundle extension that provides an Insight panel (named 'Copilot') and an API endpoint (`POST /copilot/ask`).
 - If given longer, I would make many improvements:
+  - Store the chat history so it remains when the user navigates away from their dashboard.
   - Ask the AI for richer data (like tables, markdown, etc.) that could be displayed in a companion side drawer alongside the chat.
   - Enhance its capabilities by building an "Agent" that could plan multiple API calls instead of relying on a one-shot API call.
   - Would allow the AI to explore more endpoints, and possibly even perform POST and PATCH operations!
