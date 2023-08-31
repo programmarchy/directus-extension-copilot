@@ -27,6 +27,10 @@ A Directus extension that provides an Insights panel and API endpoint allowing y
   - Remove the dependency on langchain in favor of something simpler, more lightweight.
   - Smooth out the build process.
 
+## Demo Video
+
+https://github.com/programmarchy/directus-extension-copilot/assets/622192/312a6b30-063f-4d16-84f3-0d7989a4680c
+
 ## Screenshots
 
 <img width="1241" alt="screenshot-1" src="https://github.com/programmarchy/directus-extension-copilot/assets/622192/de911a27-7ffb-4d7a-9f1e-3129489308f7">
