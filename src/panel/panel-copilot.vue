@@ -86,7 +86,6 @@ export default defineComponent({
 							url: path,
 							data: args,
 						});
-						console.log(output);
 						const { data: callback } = await api.post('copilot/ask/callback', {
 							key: props.key,
 							question,
