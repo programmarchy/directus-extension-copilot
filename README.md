@@ -2,6 +2,11 @@
 
 A Directus extension that provides an Insights panel and API endpoint allowing you to chat with your data using OpenAI.
 
+## Requirements
+
+- Directus 10.6.0
+- An OpenAI account with access to `gpt-3.5-turbo-0613`
+
 ## Details
 
 - This extension allows users to quickly find out useful information about their data using a chat interface. For example:
@@ -35,6 +40,8 @@ pnpm build:langchain
 pnpm i
 pnpm build
 ```
+
+To spare you any trouble, I removed the `dist` folder from `.gitignore` so that you can skip this step if it causes any trouble.
 
 ## Installation
 
