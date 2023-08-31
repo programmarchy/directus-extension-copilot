@@ -37,13 +37,15 @@ export default defineComponent({
 			type: Boolean,
 			default: false,
 		},
-		key: {
+		apiKey: {
 			type: String,
 			default: '',
 		},
 	},
 	setup(props) {
 		const api = useApi();
+
+		console.log(props.apiKey);
 
 		const questionInput = ref('');
 		const loading = ref(false);
@@ -72,7 +74,7 @@ export default defineComponent({
 			try {
 				const { data } = await api.post('copilot/ask', {
 					question,
-					key: props.key,
+					key: props.apiKey,
 				});
 				addMessage({
 					type: 'bot',
@@ -88,7 +90,7 @@ export default defineComponent({
 							data: args,
 						});
 						const { data: callback } = await api.post('copilot/ask/callback', {
-							key: props.key,
+							key: props.apiKey,
 							question,
 							output: JSON.stringify(output),
 						});
@@ -99,7 +101,7 @@ export default defineComponent({
 						});
 					} catch (err) {
 						const { data: callback } = await api.post('copilot/ask/callback', {
-							key: props.key,
+							key: props.apiKey,
 							question,
 						});
 						addMessage({

@@ -9,7 +9,7 @@ export default definePanel({
 	component: PanelCopilot,
 	options: [
 		{
-			field: 'key',
+			field: 'apiKey',
 			name: 'OpenAI API Key',
 			type: 'string',
 			meta: {
