@@ -8,7 +8,7 @@ export default defineEndpoint({
 	handler: (router, { env, services, database: knex, logger }) => {
 		const { SpecificationService } = services;
 
-		router.get('/', async (req: unknown, res) => {
+		router.post('/ask', async (req: unknown, res) => {
 			try {
 				console.log(req);
 				const {
@@ -18,7 +18,7 @@ export default defineEndpoint({
 						question,
 						openai_api_key,
 					},
-				} = parseRequest(req);
+				} = parseAskRequest(req);
 				const openaiApiKey = getOpenAIAPIKey({ env, openai_api_key });
 				const specService = new SpecificationService({
 					accountability,
@@ -27,9 +27,7 @@ export default defineEndpoint({
 				});
 				const spec = await getDirectusOpenAPISpec({ specService });
 				res.json({
-					question,
-					spec,
-					openaiApiKey,
+					answer: "Yee haw!",
 				});
 			} catch (err) {
 				// Seems like this should be handled by the error handler middleware,
@@ -43,7 +41,7 @@ export default defineEndpoint({
 	},
 });
 
-type CopilotGetRequest = {
+type CopilotAskRequest = {
 	accountability: Accountability;
 	schema: SchemaOverview;
 	query: {
@@ -52,12 +50,12 @@ type CopilotGetRequest = {
 	};
 };
 
-function parseRequest(req: any): CopilotGetRequest {
+function parseAskRequest(req: any): CopilotAskRequest {
 	// These properties are injected by the Directus API.
 	const { accountability, schema } = req;
 	// These properties need to be parsed from the request.
-	const question = parseStringParam('q', req);
-	const openai_api_key = parseOptionalStringParam('openai_api_key', req);
+	const question = parseStringParam('q', req.body);
+	const openai_api_key = parseOptionalStringParam('openai_api_key', req.body);
 	return {
 		accountability,
 		schema,
@@ -68,21 +66,21 @@ function parseRequest(req: any): CopilotGetRequest {
 	};
 }
 
-function parseOptionalStringParam(key: string, req: any, defaultValue?: string): string | undefined {
-	const value = req.query?.[key];
+function parseOptionalStringParam(key: string, params?: any, defaultValue?: string): string | undefined {
+	const value = params?.[key];
 	if (value === undefined) {
 		return defaultValue;
 	} else if (typeof value === 'string') {
 		return value;
 	} else {
-		throw new InvalidPayloadError({ reason: `Expected "${key}" to be a string.`});
+		throw new InvalidPayloadError({ reason: `Expected "${key}" to be a string`});
 	}
 }
 
-function parseStringParam(key: string, req: any, defaultValue?: string): string {
-	const value = parseOptionalStringParam(key, req, defaultValue);
+function parseStringParam(key: string, params?: any, defaultValue?: string): string {
+	const value = parseOptionalStringParam(key, params, defaultValue);
   if (value === undefined) {
-    throw new InvalidPayloadError({ reason: `"${key}" is required.`});
+    throw new InvalidPayloadError({ reason: `"${key}" is required`});
   } else {
     return value;
   }
@@ -90,7 +88,7 @@ function parseStringParam(key: string, req: any, defaultValue?: string): string 
 
 function encodeErrorResponse(err: any): [ number, any ] {
 	const status: number = err.status ?? 500;
-	const message: string = err.message ?? 'An unexpected error occurred.';
+	const message: string = err.message ?? 'An unexpected error occurred';
 	const code: string = err.code ?? 'INTERNAL_SERVER_ERROR';
 	return [
 		status,
@@ -121,6 +119,6 @@ function getOpenAIAPIKey({
 		return env.OPENAI_API_KEY;
 	}
 	throw new InvalidPayloadError({
-		reason: 'No OpenAI API key was provided.'
+		reason: 'No OpenAI API key was provided'
 	});
 }

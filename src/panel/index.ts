@@ -1,15 +1,15 @@
 import { definePanel } from '@directus/extensions-sdk';
-import PanelComponent from './panel.vue';
+import PanelCopilot from './panel-copilot.vue';
 
 export default definePanel({
 	id: 'copilot',
 	name: 'Copilot',
-	icon: 'box',
+	icon: 'robot',
 	description: 'Ask Copilot a question about your data.',
-	component: PanelComponent,
+	component: PanelCopilot,
 	options: [
 		{
-			field: 'openai_api_key',
+			field: 'key',
 			name: 'OpenAI API Key',
 			type: 'string',
 			meta: {
@@ -22,6 +22,6 @@ export default definePanel({
 			},
 		},
 	],
-	minWidth: 12,
-	minHeight: 8,
+	minWidth: 16,
+	minHeight: 24,
 });
