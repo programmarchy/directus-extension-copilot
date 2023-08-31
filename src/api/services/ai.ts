@@ -5,6 +5,7 @@ import { ChainValues } from 'langchain/schema';
 import { CallbackManagerForChainRun } from 'langchain/callbacks';
 import { createStructuredOutputChain } from 'langchain/chains/openai_functions';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
+import { getOperationInfoMap, OperationInfo } from '../utils/oas';
 import type { Logger } from '../types';
 
 const basePrompt = (
@@ -13,8 +14,15 @@ const basePrompt = (
   `You will be given a context and a question. Answer the question based on the context.`
 );
 
-type AskOutput = {
-  response: string;
+type AiResult = {
+  state: 'api' | 'chat';
+  message: string;
+  api?: {
+    method: string;
+    path: string;
+    description?: string;
+    args: Record<string, any>;
+  }
 };
 
 export type AiServiceOptions = {
@@ -44,7 +52,7 @@ export class AiService {
     return this;
   }
 
-  async ask(question: string): Promise<AskOutput> {
+  async ask(question: string): Promise<AiResult> {
     const openApiChain = await createOpenAPIChain(this.spec, {
       verbose: this.verbose,
       headers: this.headers,
@@ -54,29 +62,44 @@ export class AiService {
           apiKey: this.apiKey,
         },
       }),
-      requestChain: new SimpleRequestChain({
-        requestMethod: async (name, args) => {
-          console.log(name, args);
-          throw Error('Request failed.');
-        }
-      }),
+      requestChain: new PassThroughChain(),
     });
 
-    this.logger?.info(openApiChain.chains[0]);
+    type RunOutput = {
+      name: string;
+      args: Record<string, any>;
+    };
 
-    let apiOutput: string | undefined;
-    try {
-      this.logger?.info('Calling the API endpoint...');
-      const result = await openApiChain.run(question);
-      if (result) {
-        this.logger?.info(`Got an API result: ${result}`);
-        apiOutput = JSON.stringify(JSON.parse(result));
-        this.logger?.info('Parsed response.');
-      }
-    } catch (err) {
-      this.logger?.warn(err);
+    const output: RunOutput = await openApiChain.run(question) as any;
+    const { name, args } = output;
+
+    const map = getOperationInfoMap(this.spec);
+    const op = map.get(name);
+    if (!op) {
+      throw new Error(`Could not find the API to call.`);
     }
-  
+
+    function formatMessage(op: OperationInfo): string {
+      if (op.description) {
+        const  { description: s } = op;
+        const formattedDescription = (s.charAt(0).toLowerCase() + s.slice(1)).replace(/\.$/, '');
+        return `Calling the API to ${formattedDescription}...`;
+      } else {
+        return `Calling the API...`;
+      }
+    }
+
+    return {
+      state: 'api',
+      message: formatMessage(op),
+      api: {
+        ...op,
+        args,
+      },
+    };
+  }
+
+  async askCallback(question: string, apiOutput?: string): Promise<AiResult> {
     const promptTemplate = await getChatPromptTemplate({
       apiOutput,
       basePrompt,
@@ -98,17 +121,23 @@ export class AiService {
         properties: {
           'response': {
             type: 'string',
-            description: `The answer to the user's question in Markdown.`,
+            description: `The answer to the user's question in plain text.`,
           },
         },
       },
     });
   
-    const output = await structuredOutputChain.run({
-      question
-    }) as any;
+    type RunOutput = {
+      response: string;
+    };
+
+    const output: RunOutput = await structuredOutputChain.run(question) as any;
+    const { response } = output;
   
-    return output;
+    return {
+      state: 'chat',
+      message: response,
+    };
   }
 }
 
@@ -142,7 +171,7 @@ async function getChatPromptTemplate({ basePrompt, question, apiOutput }: GetCha
         '{user_question}'
       ),
       SystemMessagePromptTemplate.fromTemplate(
-        'Based on the previous user question and the chat context, provide a helpful answer in Markdown format:',
+        'Based on the previous user question and the chat context, provide a helpful answer in plain text format:',
       ),
     ]).partial({
       base_prompt: basePrompt,
@@ -170,33 +199,22 @@ async function getChatPromptTemplate({ basePrompt, question, apiOutput }: GetCha
   }
 }
 
-/**
- * Type representing a function for executing simple requests.
- */
-type SimpleRequestChainExecutionMethod = (
-  name: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  requestArgs: Record<string, any>
-) => Promise<string>;
-
-/**
- * A chain for making simple API requests.
- */
-class SimpleRequestChain extends BaseChain {
+// This chain simply passes through the input to the output.
+// We don't want to actually call the API endpoint in the chain,
+// so instead we pass it through so it can be sent back to the
+// caller to handle.
+class PassThroughChain extends BaseChain {
   static lc_name() {
-    return "SimpleRequestChain";
+    return "PassThroughChain";
   }
 
-  private requestMethod: SimpleRequestChainExecutionMethod;
+  constructor() {
+    super();
+  }
 
   inputKey = "function";
 
   outputKey = "response";
-
-  constructor(config: { requestMethod: SimpleRequestChainExecutionMethod }) {
-    super();
-    this.requestMethod = config.requestMethod;
-  }
 
   get inputKeys() {
     return [this.inputKey];
@@ -207,7 +225,7 @@ class SimpleRequestChain extends BaseChain {
   }
 
   _chainType() {
-    return "simple_request_chain" as const;
+    return "pass_through_chain" as const;
   }
 
   /** @ignore */
@@ -216,9 +234,12 @@ class SimpleRequestChain extends BaseChain {
     _runManager?: CallbackManagerForChainRun
   ): Promise<ChainValues> {
     const inputKeyValue = values[this.inputKey];
-    const methodName = inputKeyValue.name;
-    const args = inputKeyValue.arguments;
-    const response = await this.requestMethod(methodName, args);
-    return { [this.outputKey]: response };
+    const response = {
+      name: inputKeyValue.name,
+      args: inputKeyValue.arguments,
+    };
+    return {
+      [this.outputKey]: response,
+    };
   }
 }

@@ -1,7 +1,7 @@
 <template>
 	<div class="copilot" :class="{ 'show-header': showHeader }">
 		<div class="ask-question">
-			<v-input v-model="question" placeholder="Ask a question..." />
+			<v-input v-model="questionInput" placeholder="Ask a question..." />
 			<div v-if="loading" class="loading">
 				<v-progress-circular indeterminate />
 			</div>
@@ -40,12 +40,12 @@ export default defineComponent({
 		key: {
 			type: String,
 			default: '',
-		}
+		},
 	},
 	setup(props) {
 		const api = useApi();
 
-		const question = ref('');
+		const questionInput = ref('');
 		const loading = ref(false);
 		const messages = ref<Message[]>([
 			{
@@ -60,24 +60,55 @@ export default defineComponent({
 		}
 
 		async function ask() {
+			const question = questionInput.value;
 			addMessage({
 				type: 'human',
-				text: question.value,
+				text: question,
 				timestamp: Date.now(),
 			});
 			loading.value = true;
-			question.value = '';
+			questionInput.value = '';
 			try {
 				const { data } = await api.post('copilot/ask', {
-					q: question.value,
+					question,
 					key: props.key,
 				});
-				console.log(data);
 				addMessage({
 					type: 'bot',
-					text: data?.answer ?? ANSWER_EMPTY_FALLBACK,
+					text: data?.message || ANSWER_EMPTY_FALLBACK,
 					timestamp: Date.now(),
 				});
+				if (data?.api) {
+					const { path, method, args } = data.api;
+					try {
+						const { data: output } = await api.request({
+							method,
+							url: path,
+							data: args,
+						});
+						console.log(output);
+						const { data: callback } = await api.post('copilot/ask/callback', {
+							key: props.key,
+							question,
+							output: JSON.stringify(output),
+						});
+						addMessage({
+							type: 'bot',
+							text: callback?.message || ANSWER_EMPTY_FALLBACK,
+							timestamp: Date.now(),
+						});
+					} catch (err) {
+						const { data: callback } = await api.post('copilot/ask/callback', {
+							key: props.key,
+							question,
+						});
+						addMessage({
+							type: 'bot',
+							text: callback?.message || ANSWER_EMPTY_FALLBACK,
+							timestamp: Date.now(),
+						});
+					}
+				}
 			} catch (err) {
 				console.error(err);
 				addMessage({
@@ -91,7 +122,7 @@ export default defineComponent({
 		}
 
 		return {
-			question,
+			questionInput,
 			messages,
 			loading,
 			ask,

@@ -1,7 +1,7 @@
 import { defineEndpoint } from '@directus/extensions-sdk';
 import { Accountability, SchemaOverview } from '@directus/types';
 import { InvalidPayloadError } from './errors';
-import { getDirectusOpenAPISpec } from './utils/get-directus-oas';
+import { getDirectusOpenAPISpec } from './utils/oas';
 import { AiService } from './services/ai';
 
 export default defineEndpoint({
@@ -9,7 +9,7 @@ export default defineEndpoint({
 	handler: (router, { env, services, database: knex, logger }) => {
 		const { SpecificationService } = services;
 
-		router.post('/ask', async (req: unknown, res) => {
+		router.post('/ask/:callback?', async (req: any, res) => {
 			try {
 				const {
 					accountability,
@@ -17,8 +17,9 @@ export default defineEndpoint({
 					body: {
 						question,
 						apiKey,
+						apiOutput,
 					},
-				} = parseAskRequest(req);
+				} = parseRequest(req);
 
 				const specService = new SpecificationService({
 					accountability,
@@ -34,11 +35,13 @@ export default defineEndpoint({
 					logger,
 				});
 
-				const { response } = await aiService.ask(question);
-
-				res.json({
-					answer: response,
-				});
+				if (!req.params.callback) {
+					console.log('/ask');
+					res.json(await aiService.ask(question));
+				} else {
+					console.log('/ask/callback');
+					res.json(await aiService.askCallback(question, apiOutput));
+				}
 			} catch (err) {
 				// Seems like this should be handled by the error handler middleware,
 				// but during testing, uncaught errors crashed the server instead.
@@ -51,27 +54,30 @@ export default defineEndpoint({
 	},
 });
 
-type CopilotAskRequest = {
+type CopilotRequest = {
 	accountability: Accountability;
 	schema: SchemaOverview;
 	body: {
 		question: string;
 		apiKey?: string;
+		apiOutput?: string;
 	};
 };
 
-function parseAskRequest(req: any): CopilotAskRequest {
+function parseRequest(req: any): CopilotRequest {
 	// These properties are injected by the Directus API.
 	const { accountability, schema } = req;
 	// These properties need to be parsed from the request.
-	const question = parseStringParam('q', req.body);
+	const question = parseStringParam('question', req.body);
 	const apiKey = parseOptionalStringParam('key', req.body);
+	const apiOutput = parseOptionalStringParam('output', req.body);
 	return {
 		accountability,
 		schema,
 		body: {
 			question,
 			apiKey,
+			apiOutput,
 		},
 	};
 }

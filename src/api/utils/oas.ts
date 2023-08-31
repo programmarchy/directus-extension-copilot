@@ -139,3 +139,24 @@ function dereferenceSpec(spec: any): any {
 
   return dereferenceRefs(spec);
 }
+
+export type OperationInfo = {
+  path: string;
+  method: string;
+  description?: string;
+}
+
+export function getOperationInfoMap(spec: any): Map<string, OperationInfo> {
+  const map = new Map();
+  for (const path in spec.paths) {
+    for (const method in spec.paths[path]) {
+      const operation = spec.paths[path][method];
+      map.set(operation.operationId, {
+        path,
+        method,
+        description: operation.description,
+      });
+    }
+  }
+  return map;
+}
