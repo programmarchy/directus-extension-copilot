@@ -1,4 +1,3 @@
-import 'crypto';
 import { ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate } from 'langchain/prompts';
 import { createOpenAPIChain, BaseChain } from 'langchain/chains';
 import { ChainValues } from 'langchain/schema';
